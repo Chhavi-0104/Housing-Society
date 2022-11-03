@@ -26,7 +26,7 @@ async def add_resource(add:ResModel,Authorize:AuthJWT=Depends()):
     except Exception as e:
         raise HTTPException(status_code=401,detail="Invalid Token")
     current_user =Authorize.get_jwt_subject()
-    user=session.query(User).filter(User.username==current_user).first()
+    user=session.query(User).filter(User.email==current_user).first()
     if user.admin:
         new_Resource=Resource(
             resource_name=add.resource_name,
@@ -51,13 +51,14 @@ async def list_all_resources(Authorize:AuthJWT=Depends()):
     ## View Resources
     Shows Resource_name,Availability and id
     """
-
-    try:
-        Authorize.jwt_required()
-    except Exception as e:
-        raise HTTPException(status_code=401,detail="Invalid Token")
     res=session.query(Resource).all()
     return jsonable_encoder(res)
+    # try:
+    #     Authorize.jwt_required()
+    # except Exception as e:
+    #     raise HTTPException(status_code=401,detail="Invalid Token")
+    # res=session.query(Resource).all()
+    # return jsonable_encoder(res)
 
 @book_router.put('/resources/{id}',status_code=200)
 async def update_resource(id:int,res1:ResModel,Authorize:AuthJWT=Depends()):
@@ -74,7 +75,7 @@ async def update_resource(id:int,res1:ResModel,Authorize:AuthJWT=Depends()):
     except Exception as e:
         raise HTTPException(status_code=401,detail="Invalid Token")
     current_user =Authorize.get_jwt_subject()
-    user=session.query(User).filter(User.username==current_user).first()
+    user=session.query(User).filter(User.email==current_user).first()
     if user.admin:   
         res_to_update = session.query(Resource).filter(Resource.id==id).first()
         res_to_update.resource_name=res1.resource_name
@@ -97,7 +98,7 @@ async def delete_res(id:int,Authorize:AuthJWT=Depends()):
     except Exception as e:
         raise HTTPException(status_code=401,detail="Invalid Token")
     current_user =Authorize.get_jwt_subject()
-    user=session.query(User).filter(User.username==current_user).first()
+    user=session.query(User).filter(User.email==current_user).first()
     if user.admin:  
         res_to_delete = session.query(Resource).filter(Resource.id==id).first()
         session.delete(res_to_delete)
