@@ -51,14 +51,12 @@ async def list_all_resources(Authorize:AuthJWT=Depends()):
     ## View Resources
     Shows Resource_name,Availability and id
     """
+    try:
+        Authorize.jwt_required()
+    except Exception as e:
+        raise HTTPException(status_code=401,detail="Invalid Token")
     res=session.query(Resource).all()
     return jsonable_encoder(res)
-    # try:
-    #     Authorize.jwt_required()
-    # except Exception as e:
-    #     raise HTTPException(status_code=401,detail="Invalid Token")
-    # res=session.query(Resource).all()
-    # return jsonable_encoder(res)
 
 @book_router.put('/resources/{id}',status_code=200)
 async def update_resource(id:int,res1:ResModel,Authorize:AuthJWT=Depends()):
