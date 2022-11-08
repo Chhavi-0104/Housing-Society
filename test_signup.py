@@ -3,11 +3,11 @@ import json
 from main import auth_router
 
 client = TestClient(auth_router)
-def test_read_root():
+def test_read_root(): 
     data ={
-    "username":"Rinku Garg",
-    "email":"rinku@gmail.com",
-    "password":"rinku123",
+    "username":"pan Garg",
+    "email":"pan@gmail.com",
+    "password":"pan123",
     "admin":"False"
     }
     response = client.post("/signup",json.dumps(data))
@@ -16,7 +16,7 @@ def test_read_root():
 
 def test_read_root2():
     data ={
-    "username":"Rinku Garg",
+    "username":"Sanjay Garg",
     "email":"abcd@gmail.com",
     "password":"rinku123",
     "admin":"False"
@@ -28,7 +28,7 @@ def test_read_root2():
 def test_read_root1():
     data ={
     "username":"Abcd Garg",
-    "email":"rinku@gmail.com",
+    "email":"chhavi@gmail.com",
     "password":"abcd123",
     "admin":"False"
     }
