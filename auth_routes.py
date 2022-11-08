@@ -1,13 +1,15 @@
-from datetime import datetime,timedelta
+from datetime import timedelta
 from fastapi import APIRouter, Depends
 from fastapi.exceptions import HTTPException
-from database import Session,engine
-from schemas import SignupModel,LoginModel,UserUpdateModel
-from models import User
 from fastapi.exceptions import HTTPException
 from fastapi_jwt_auth import AuthJWT
 from werkzeug.security import generate_password_hash,check_password_hash
 from fastapi.encoders import jsonable_encoder
+from sqlalchemy.orm import load_only
+
+from database import Session,engine
+from schemas import SignupModel,LoginModel,UserUpdateModel
+from models import User
 
 
 
@@ -44,20 +46,16 @@ async def show_users(Authorize:AuthJWT=Depends()):
     """
     ## Shows Registered users (Admin Rights required)
     """
-    ## for frontend
-    users = session.query(User).offset(0).limit(100).all()
-    return users
-    ## upto here
-    # try:
-    #     Authorize.jwt_required()
-    # except Exception as e:
-    #     raise HTTPException(status_code=401,detail="Invalid Token")
-    # current_user =Authorize.get_jwt_subject()
-    # user= session.query(User).filter(User.email==current_user).first()
-    # if user.admin:
-    #     users = session.query(User).offset(0).limit(100).all()
-    #     return users
-    # raise HTTPException(status_code=401,detail="You are not Admin. Only Admins can view Registered Users")
+    try:
+        Authorize.jwt_required()
+    except Exception as e:
+        raise HTTPException(status_code=401,detail="Invalid Token")
+    current_user =Authorize.get_jwt_subject()
+    user= session.query(User).filter(User.email==current_user).first()
+    if user.admin:
+        users = session.query(User).offset(0).limit(100).all()
+        return users
+    raise HTTPException(status_code=401,detail="You are not Admin. Only Admins can view Registered Users")
 
 @auth_router.post('/signup',status_code=201)
 async def signup(user:SignupModel,Authorize:AuthJWT=Depends()):
@@ -114,12 +112,11 @@ async def login(user:LoginModel,Authorize:AuthJWT=Depends()):
         func(user,access_token)
         response={
             "message":"Login Successfull",
-            "access":access_token,
-            "refresh":refresh_token
+            "token":access_token,
+            "refresh_token":refresh_token
         }
 
         return jsonable_encoder(response)
-    
     raise HTTPException(status_code=400,detail="Invalid Email or Password")
 
 @auth_router.put('/users/{id}',status_code=200)
