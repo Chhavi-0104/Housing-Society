@@ -5,18 +5,14 @@ from fastapi.exceptions import HTTPException
 from fastapi_jwt_auth import AuthJWT
 from werkzeug.security import generate_password_hash,check_password_hash
 from fastapi.encoders import jsonable_encoder
-from sqlalchemy.orm import load_only
 
 from database import Session,engine
 from schemas import SignupModel,LoginModel,UserUpdateModel
 from models import User
 
-
-
 auth_router = APIRouter()
 
 session=Session(bind=engine)
-
 
 def func(user1:LoginModel,access_token:str):
     user_to_update = session.query(User).filter(User.email==user1.email).first()
@@ -53,7 +49,7 @@ async def show_users(Authorize:AuthJWT=Depends()):
     current_user =Authorize.get_jwt_subject()
     user= session.query(User).filter(User.email==current_user).first()
     if user.admin:
-        users = session.query(User).offset(0).limit(100).all()
+        users = session.query(User.id,User.username,User.email,User.admin).filter(User.is_active==1).offset(0).limit(100).all()
         return users
     raise HTTPException(status_code=401,detail="You are not Admin. Only Admins can view Registered Users")
 
@@ -66,7 +62,6 @@ async def signup(user:SignupModel,Authorize:AuthJWT=Depends()):
     - username : str
     - email : str
     - password : str
-    - admin : bool
     """
 
     db_email=session.query(User).filter(User.email ==user.email).first()
@@ -85,14 +80,15 @@ async def signup(user:SignupModel,Authorize:AuthJWT=Depends()):
         username=user.username,
         email=user.email,
         password= generate_password_hash(user.password),
-        admin =user.admin
     )
     session.add(new_user)
     session.commit()
-    db_user=session.query(User).filter(User.email== user.email).first()
-    access_token=Authorize.create_access_token(subject=db_user.email,expires_time=timedelta(days=1))
-    func(user,access_token)
-    return {"message":"Registration Successfull","access":access_token}
+    response={
+            "message":"Registration Successfull",
+            "username":user.username,
+            "email":user.email
+        }
+    return response
 
 
 @auth_router.post('/login',status_code=200)
@@ -112,7 +108,7 @@ async def login(user:LoginModel,Authorize:AuthJWT=Depends()):
         func(user,access_token)
         response={
             "message":"Login Successfull",
-            "token":access_token,
+            "access_token":access_token,
             "refresh_token":refresh_token
         }
 
@@ -129,6 +125,7 @@ async def update_user(id:int,user1:UserUpdateModel,Authorize:AuthJWT=Depends()):
     - username : str
     - email : str
     - admin : bool
+    - is_active : bool
     """
 
     try:
@@ -143,39 +140,24 @@ async def update_user(id:int,user1:UserUpdateModel,Authorize:AuthJWT=Depends()):
         user_to_update.username=user1.username
         user_to_update.email= user1.email
         user_to_update.admin= user1.admin
+        user_to_update.is_active = user1.is_active
         session.commit()
         if user.admin:
-            return {"message":"Updated successfully using admin rights"}
-        return {"message":"Updated successfully"}
+            response={
+            "message":"Updated successfully using admin rights",
+            "username":user1.username,
+            "email":user1.email,
+            "is_active":user1.is_active
+            }
+            return response
+        return {
+            "message":"Updated successfully",
+            "username":user1.username,
+            "email":user1.email,
+            "is_active":user1.is_active
+            }
 
     raise HTTPException(status_code=401,detail="You cannot modify someone else's details OR You must have admin rights")
-
-
-@auth_router.delete('/users/{id}',status_code=202)
-async def delete_user(id:int,Authorize:AuthJWT=Depends()):
-
-    """
-    ## This route deletes existing user
-    User need to enter id (Admin Rights required)
-    If you are not admin you can update only your profile
-    """
-
-    try:
-        Authorize.jwt_required()
-    except Exception as e:
-        raise HTTPException(status_code=401,detail="Invalid Token")
-
-    current_user =Authorize.get_jwt_subject()
-    user= session.query(User).filter(User.email==current_user).first()
-    if user.id==id or user.admin:
-        user_to_delete = session.query(User).filter(User.id==id).first()
-        session.delete(user_to_delete)
-        session.commit()
-        if user.admin:
-            return {"message":"Deleted successfully using admin rights"}
-        return {"message":"Deleted successfully"}
-
-    raise HTTPException(status_code=401,detail="You cannot delete someone else's details OR You must have admin rights")
 
 @auth_router.get('/refresh')
 async def refresh_token(Authorize:AuthJWT=Depends()):
