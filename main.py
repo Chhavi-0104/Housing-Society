@@ -1,14 +1,13 @@
 from fastapi import FastAPI
+from fastapi_jwt_auth import AuthJWT
+from fastapi.middleware.cors import CORSMiddleware
 
 from auth_routes import auth_router 
 from resource_routes import resource_router
 from booking_routes import booking_router
-from fastapi_jwt_auth import AuthJWT
 from schemas import Settings
 from database import engine
 import models
-from fastapi.middleware.cors import CORSMiddleware
-
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -31,4 +30,3 @@ def get_config():
 app.include_router(auth_router)
 app.include_router(resource_router)
 app.include_router(booking_router)
- #chhavi

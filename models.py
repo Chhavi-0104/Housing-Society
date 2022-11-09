@@ -1,7 +1,9 @@
 from sqlalchemy import Boolean, Column, Integer, String,Text,ForeignKey,UniqueConstraint
 from sqlalchemy.types import Date
-from database import Base
 from sqlalchemy.orm import relationship
+
+
+from database import Base
 
 class User(Base):
     __tablename__ = "user"
@@ -11,6 +13,7 @@ class User(Base):
     password = Column(Text, nullable=True)
     admin= Column(Boolean,default=False)
     token=Column(String)
+    is_active=Column(Boolean,default=True)
     bookings=relationship('Booking',back_populates='user')
 
     def __repr__(self):
@@ -23,9 +26,10 @@ class Booking(Base):
     resource_name = Column(String(25))
     user_id =Column(Integer,ForeignKey('user.id'))
     res_id=Column(Integer,ForeignKey('resource.id'))
+    Date_Booked=Column(Date)
+    status = Column(String(25),default="Successfull")
     user=relationship('User',back_populates='bookings')
     res=relationship('Resource',back_populates='resources')
-    Date_Booked=Column(Date)
     __table_args__ = (UniqueConstraint('res_id', 'Date_Booked', name='combo'),)
 
     def __repr__(self):

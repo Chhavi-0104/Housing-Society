@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional,List
+from typing import Optional
 from datetime import date
 
 class SignupModel(BaseModel):
@@ -7,7 +7,6 @@ class SignupModel(BaseModel):
     username : str
     email: str
     password :str
-    admin: Optional[bool]
 
     class Config:
         arbitrary_types_allowed = True
@@ -17,15 +16,15 @@ class SignupModel(BaseModel):
                 "username":"John",
                 "email":"john@gmail.com",
                 "password":"john123",
-                "admin":"False"
             }
         }
 
 class UserUpdateModel(BaseModel):
     id :Optional[int]
-    username : str
-    email: str
+    username :Optional[str]
+    email: Optional[str]
     admin: Optional[bool]
+    is_active:Optional[bool]
     class Config:
         arbitrary_types_allowed = True
         orm_mode=True
@@ -33,7 +32,8 @@ class UserUpdateModel(BaseModel):
             'example':{
                 "username":"John",
                 "email":"john@gmail.com",
-                "admin":"False"
+                "admin":"False",
+                "is_active":"True"
             }
         }
 
@@ -48,14 +48,13 @@ class ResModel(BaseModel):
     id : Optional[int]
     resource_name :str
     amount:int
-    availability: str = "Available"
+    availability: Optional[str] 
     class Config:
         orm_mode=True
         schema_extra={
             "example":{
                 "resource_name":"Hall",
-                "amount":"2000",
-                "availability": "Not Available"
+                "amount":"2000"
             }
         }
 
@@ -64,6 +63,7 @@ class BookingAdd(BaseModel):
     resource_name: str
     user_id :Optional[int]
     Date_Booked: date
+    status:Optional[str]
     class Config:
         orm_mode = True
         schema_extra={
