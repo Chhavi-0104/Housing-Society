@@ -1,16 +1,16 @@
 from fastapi import APIRouter,Depends
 from fastapi_jwt_auth import AuthJWT
-from models import Resource,User
-from schemas import  ResModel
 from fastapi.exceptions import HTTPException
-from database import Session,engine
 from fastapi.encoders import jsonable_encoder
 
+from database import Session,engine
+from models import Resource,User
+from schemas import  ResModel
 
-book_router = APIRouter()
+resource_router = APIRouter()
 session=Session(bind=engine)
 
-@book_router.post('/resources',status_code=201)
+@resource_router.post('/resources',status_code=201)
 async def add_resource(add:ResModel,Authorize:AuthJWT=Depends()):
 
     """
@@ -45,7 +45,7 @@ async def add_resource(add:ResModel,Authorize:AuthJWT=Depends()):
         return {"message":"Resource added Successfully"}
     raise HTTPException(status_code=401,detail="You are not Admin")
 
-@book_router.get('/resources',status_code=200)
+@resource_router.get('/resources',status_code=200)
 async def list_all_resources(Authorize:AuthJWT=Depends()):
     """
     ## View Resources
@@ -58,7 +58,7 @@ async def list_all_resources(Authorize:AuthJWT=Depends()):
     res=session.query(Resource).all()
     return jsonable_encoder(res)
 
-@book_router.put('/resources/{id}',status_code=200)
+@resource_router.put('/resources/{id}',status_code=200)
 async def update_resource(id:int,res1:ResModel,Authorize:AuthJWT=Depends()):
     """
     ## Updating a Resource (Admin Rights required)
@@ -83,7 +83,7 @@ async def update_resource(id:int,res1:ResModel,Authorize:AuthJWT=Depends()):
         return {"message":"Resource Updated Succesfully"}
     raise HTTPException(status_code=401,detail="You are not Admin")
 
-@book_router.delete('/resources/{id}',status_code=200)
+@resource_router.delete('/resources/{id}',status_code=200)
 async def delete_res(id:int,Authorize:AuthJWT=Depends()):
     """
     ## Deleting a Resource (Admin Rights required)

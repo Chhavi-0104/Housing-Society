@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 
 from auth_routes import auth_router 
-from book_routes import book_router
+from resource_routes import resource_router
 from booking_routes import booking_router
 from fastapi_jwt_auth import AuthJWT
 from schemas import Settings
@@ -29,6 +29,6 @@ def get_config():
     return Settings()
 
 app.include_router(auth_router)
-app.include_router(book_router)
+app.include_router(resource_router)
 app.include_router(booking_router)
  #chhavi
