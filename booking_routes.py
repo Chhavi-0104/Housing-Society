@@ -141,4 +141,3 @@ async def delete_user_booking(id:int,Authorize:AuthJWT=Depends()):
         session.commit()
         return {"message":"Booking Removed Successfully"}
     raise HTTPException(status_code=401,detail="You are not Admin")
-
