@@ -26,25 +26,27 @@ async def add_booking(book:BookingAdd,Authorize:AuthJWT=Depends()):
     current_user =Authorize.get_jwt_subject()
     user=session.query(User).filter(User.email==current_user).first()
     res=session.query(Resource).filter(Resource.resource_name==book.resource_name).first()
-    if res.availability == "Available" :
-        try:
-            new_booking=Booking(
-                resource_name = book.resource_name,
-                Date_Booked=book.Date_Booked
-            )
-            new_booking.user=user
-            new_booking.res=res
-            session.add(new_booking)
-            session.commit()
-            response={
-                "resource_name":new_booking.resource_name,
-                "Date_Booked":new_booking.Date_Booked,
-                "id": new_booking.id,
-            }
-            return {"message":"Booking Successfull"}
-        except Exception as e:
-            raise HTTPException(status_code=500,detail="This resource already booked on this date.")
-    return {"message":"Sorry Resource Not Available"}
+    if res:
+        if res.availability == "Available" :
+            try:
+                new_booking=Booking(
+                    resource_name = book.resource_name,
+                    Date_Booked=book.Date_Booked
+                )
+                new_booking.user=user
+                new_booking.res=res
+                session.add(new_booking)
+                session.commit()
+                response={
+                    "resource_name":new_booking.resource_name,
+                    "Date_Booked":new_booking.Date_Booked,
+                    "id": new_booking.id,
+                }
+                return {"message":"Booking Successfull"}
+            except Exception as e:
+                raise HTTPException(status_code=500,detail="This resource already booked on this date.")
+        return {"message":"Sorry Resource Not Available"}
+    raise HTTPException(status_code=500,detail="No such Resource")
 
 @booking_router.get('/bookings',status_code=200)
 async def list_all_bookings(Authorize:AuthJWT=Depends()):

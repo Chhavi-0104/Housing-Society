@@ -102,17 +102,20 @@ async def login(user:LoginModel,Authorize:AuthJWT=Depends()):
     """
 
     db_user=session.query(User).filter(User.email== user.email).first()
-    if db_user and check_password_hash(db_user.password,user.password):
-        access_token=Authorize.create_access_token(subject=db_user.email,expires_time=timedelta(days=1))
-        refresh_token=Authorize.create_refresh_token(subject=db_user.email,expires_time=timedelta(days=1))
-        func(user,access_token)
-        response={
-            "message":"Login Successfull",
-            "access_token":access_token,
-            "refresh_token":refresh_token
-        }
+    if db_user.is_active:
+        if db_user and check_password_hash(db_user.password,user.password):
+            access_token=Authorize.create_access_token(subject=db_user.email,expires_time=timedelta(days=1))
+            refresh_token=Authorize.create_refresh_token(subject=db_user.email,expires_time=timedelta(days=1))
+            func(user,access_token)
+            response={
+                "message":"Login Successfull",
+                "access_token":access_token,
+                "refresh_token":refresh_token
+            }
 
-        return jsonable_encoder(response)
+            return jsonable_encoder(response)
+    if db_user.is_active == False:
+        raise HTTPException(status_code=400,detail="Account Deactivated Contact Admin")
     raise HTTPException(status_code=400,detail="Invalid Email or Password")
 
 @auth_router.put('/users/{id}',status_code=200)
