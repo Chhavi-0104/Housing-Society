@@ -59,7 +59,7 @@ async def list_all_bookings(Authorize:AuthJWT=Depends()):
     current_user =Authorize.get_jwt_subject()
     user=session.query(User).filter(User.email==current_user).first()
     if user.admin:
-        bookings=session.query(Booking).filter(Booking.status=="Successfull").all()
+        bookings=session.query(Booking).all()
         return jsonable_encoder(bookings)
     
     raise HTTPException(status_code=401,detail="You are not Admin")
@@ -110,14 +110,9 @@ async def update_user_booking(id:int,book:BookingUpdate,Authorize:AuthJWT=Depend
         Authorize.jwt_required()
     except Exception as e:
         raise HTTPException(status_code=401,detail="Invalid Token")
-    current_user =Authorize.get_jwt_subject()
-    user= session.query(User).filter(User.email==current_user).first()
-    res=session.query(Resource).filter(Resource.resource_name==book.id).first()
-    if user.admin:
-        booking_to_update = session.query(Booking).filter(Booking.id==id).first()
-        booking_to_update.status=book.status
-        session.commit()
-        return {"message":"Booking Updated Successfully"}
+    booking_to_update = session.query(Booking).filter(Booking.id==id).first()
+    booking_to_update.status=book.status
+    session.commit()
+    return {"message":"Booking Updated Successfully"}
    
-    raise HTTPException(status_code=401,detail="You are not Admin")
 

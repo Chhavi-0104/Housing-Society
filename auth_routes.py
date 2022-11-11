@@ -93,6 +93,8 @@ async def login(user:LoginModel,Authorize:AuthJWT=Depends()):
             response={
                 "message":"Login Successfull",
                 "username":db_user.username,
+                "email":db_user.email,
+                "admin":db_user.admin,
                 "access_token":access_token,
                 "refresh_token":refresh_token
             }
