@@ -42,6 +42,7 @@ class Resource(Base):
     resource_name = Column(String(25), unique=True)
     availability= Column(String(20),default="Available")
     amount= Column(Integer)
+    image=Column(String(100))
     resources=relationship('Booking',back_populates='res')
 
     def __repr__(self):

@@ -49,12 +49,14 @@ class ResModel(BaseModel):
     resource_name :str
     amount:int
     availability: Optional[str] 
+    image: Optional[str]
     class Config:
         orm_mode=True
         schema_extra={
             "example":{
                 "resource_name":"Hall",
-                "amount":"2000"
+                "amount":"2000",
+                "image":"paste_link_of_image_here"
             }
         }
 
@@ -70,5 +72,16 @@ class BookingAdd(BaseModel):
             "example":{
                 "resource_name":"Hall",
                 "Date_Booked":"2013-01-14T00:00:00Z"
+            }
+        }
+class BookingUpdate(BaseModel):
+    id : Optional[int]
+    status:Optional[str]
+    class Config:
+        orm_mode = True
+        schema_extra={
+            "example":{
+                "id":1,
+                "status":"Cancelled"
             }
         }

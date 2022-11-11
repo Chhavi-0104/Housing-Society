@@ -19,23 +19,6 @@ def func(user1:LoginModel,access_token:str):
     user_to_update.token= access_token
     session.commit()
 
-@auth_router.get('/welcome',status_code=200)
-async def hello(Authorize:AuthJWT=Depends()):
-
-    """
-    ## Welcome Route
-    This Returns Welcome Message To Authorised User
-    """
-    try:
-        Authorize.jwt_required()
-    except Exception as e:
-        raise HTTPException(status_code=401,detail="Invalid Token")
-    current_user =Authorize.get_jwt_subject()
-    user= session.query(User).filter(User.email==current_user).first()
-    if user.admin:
-        return {"message":"Admin Welcome To the Society"}
-    return {"message":"Welcome To the Society"}
-
 @auth_router.get('/users',status_code=200)
 async def show_users(Authorize:AuthJWT=Depends()):
 
@@ -84,14 +67,14 @@ async def signup(user:SignupModel,Authorize:AuthJWT=Depends()):
     session.add(new_user)
     session.commit()
     response={
-            "message":"Registration Successfull",
+            "detail":"Registration Successfull",
             "username":user.username,
             "email":user.email
         }
     return response
 
 
-@auth_router.post('/login',status_code=200)
+@auth_router.post('/login',status_code=201)
 async def login(user:LoginModel,Authorize:AuthJWT=Depends()):
 
     """
@@ -109,6 +92,7 @@ async def login(user:LoginModel,Authorize:AuthJWT=Depends()):
             func(user,access_token)
             response={
                 "message":"Login Successfull",
+                "username":db_user.username,
                 "access_token":access_token,
                 "refresh_token":refresh_token
             }
@@ -138,29 +122,22 @@ async def update_user(id:int,user1:UserUpdateModel,Authorize:AuthJWT=Depends()):
 
     current_user =Authorize.get_jwt_subject()
     user= session.query(User).filter(User.email==current_user).first()
-    if user.id==id or user.admin:
+    if user.admin:
         user_to_update = session.query(User).filter(User.id==id).first()
         user_to_update.username=user1.username
         user_to_update.email= user1.email
         user_to_update.admin= user1.admin
         user_to_update.is_active = user1.is_active
         session.commit()
-        if user.admin:
-            response={
+        response={
             "message":"Updated successfully using admin rights",
             "username":user1.username,
             "email":user1.email,
             "is_active":user1.is_active
-            }
-            return response
-        return {
-            "message":"Updated successfully",
-            "username":user1.username,
-            "email":user1.email,
-            "is_active":user1.is_active
-            }
+        }
+        return response
 
-    raise HTTPException(status_code=401,detail="You cannot modify someone else's details OR You must have admin rights")
+    raise HTTPException(status_code=401,detail="You are not Admin")
 
 @auth_router.get('/refresh')
 async def refresh_token(Authorize:AuthJWT=Depends()):

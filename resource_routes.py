@@ -31,6 +31,7 @@ async def add_resource(add:ResModel,Authorize:AuthJWT=Depends()):
         new_Resource=Resource(
             resource_name=add.resource_name,
             availability=add.availability,
+            image=add.image,
             amount= add.amount
         )
         new_Resource.user=user
@@ -40,6 +41,7 @@ async def add_resource(add:ResModel,Authorize:AuthJWT=Depends()):
             "resource_name":new_Resource.resource_name,
             "availability": new_Resource.availability,
             "amount" : new_Resource.amount,
+            "image": new_Resource.image,
             "id": new_Resource.id
         }
         return {"message":"Resource added Successfully"}
@@ -78,6 +80,7 @@ async def update_resource(id:int,res1:ResModel,Authorize:AuthJWT=Depends()):
         res_to_update = session.query(Resource).filter(Resource.id==id).first()
         res_to_update.resource_name=res1.resource_name
         res_to_update.amount=res1.amount
+        res_to_update.image=res1.image
         res_to_update.availability= res1.availability
         session.commit()
         return {"message":"Resource Updated Succesfully"}

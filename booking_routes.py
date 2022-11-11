@@ -4,7 +4,7 @@ from fastapi.exceptions import HTTPException
 from fastapi.encoders import jsonable_encoder
 
 from models import Booking,User,Resource
-from schemas import BookingAdd
+from schemas import BookingAdd,BookingUpdate
 from database import Session,engine
 
 booking_router = APIRouter()
@@ -59,7 +59,7 @@ async def list_all_bookings(Authorize:AuthJWT=Depends()):
     current_user =Authorize.get_jwt_subject()
     user=session.query(User).filter(User.email==current_user).first()
     if user.admin:
-        bookings=session.query(Booking).all()
+        bookings=session.query(Booking).filter(Booking.status=="Successfull").all()
         return jsonable_encoder(bookings)
     
     raise HTTPException(status_code=401,detail="You are not Admin")
@@ -98,8 +98,8 @@ async def get_user_booking(Authorize:AuthJWT=Depends()):
     user= session.query(User).filter(User.email==current_user).first()
     return jsonable_encoder(user.bookings)
 
-@booking_router.put('/bookings/{id}',status_code=200)
-async def update_user_booking(id:int,book:BookingAdd,Authorize:AuthJWT=Depends()):
+@booking_router.patch('/bookings/{id}',status_code=200)
+async def update_user_booking(id:int,book:BookingUpdate,Authorize:AuthJWT=Depends()):
     """
     ##Check all bookings (Admin Rights Required)
     You need To Enter:
@@ -112,18 +112,12 @@ async def update_user_booking(id:int,book:BookingAdd,Authorize:AuthJWT=Depends()
         raise HTTPException(status_code=401,detail="Invalid Token")
     current_user =Authorize.get_jwt_subject()
     user= session.query(User).filter(User.email==current_user).first()
-    res=session.query(Resource).filter(Resource.resource_name==book.resource_name).first()
+    res=session.query(Resource).filter(Resource.resource_name==book.id).first()
     if user.admin:
-        if res.availability=="Available":
-            booking_to_update = session.query(Booking).filter(Booking.id==id).first()
-            booking_to_update.resource_name= book.resource_name
-            booking_to_update.Date_Booked= book.Date_Booked
-            booking_to_update.status=book.status
-            booking_to_update.res=res
-            session.commit()
-            return {"message":"Booking Updated Successfully"}
-        elif res.availability=="Not Available":
-                raise HTTPException(status_code=400,detail="Sorry Resource Not Available")
-            
+        booking_to_update = session.query(Booking).filter(Booking.id==id).first()
+        booking_to_update.status=book.status
+        session.commit()
+        return {"message":"Booking Updated Successfully"}
+   
     raise HTTPException(status_code=401,detail="You are not Admin")
 
